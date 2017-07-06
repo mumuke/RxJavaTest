@@ -6,19 +6,34 @@
     android:layout_height="match_parent"
     tools:context="image.cui.kejia.rxjavatest.MainActivity">
 
-    <Button
-        android:id="@+id/click_me_BN"
+    <LinearLayout
+        android:id="@+id/click_me"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:padding="5dp"
-        android:text="获取数据"
-        android:textSize="16sp" />
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/click_me_BN"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="获取数据"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/click_me_login"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="登录"
+            android:textSize="16sp" />
+    </LinearLayout>
 
     <ListView
         android:id="@+id/result_TV"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/click_me_BN"
+        android:layout_above="@id/click_me"
         android:textSize="16sp" />
 </RelativeLayout>

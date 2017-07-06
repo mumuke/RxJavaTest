@@ -1,6 +1,7 @@
 package image.cui.kejia.rxjavatest;
 
 import android.content.Context;
+import android.database.Observable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,8 +16,17 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import okhttp3.OkHttpClient;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+
+import static android.R.attr.onClick;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -25,20 +35,30 @@ public class MainActivity extends AppCompatActivity {
     private int i = 0;
 
 
-    private Button mBtn;
+    private Button mBtnData, mBtnLogin;
     private ListView mListView;
     private List<MovieBean.SubjectsBean> list;
+
+    private Retrofit mRetrofit;
+    private LoginService mLoginService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mBtn = (Button) findViewById(R.id.click_me_BN);
+        mBtnData = (Button) findViewById(R.id.click_me_BN);
+        mBtnLogin = (Button) findViewById(R.id.click_me_login);
         mListView = (ListView) findViewById(R.id.result_TV);
-        mBtn.setOnClickListener(new View.OnClickListener() {
+        mBtnData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 getMovie();
+            }
+        });
+        mBtnLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                login("admin", "12345");
             }
         });
         //创建上游
@@ -108,6 +128,38 @@ public class MainActivity extends AppCompatActivity {
 //        observable.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe(observer1);
     }
 
+    //登录，自己搭建的一个服务器
+    private void login(String account, String pwd) {
+        Subscriber<UserBean> subscriber = new Subscriber<UserBean>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e("CKJ", e.getMessage() + "------");
+            }
+
+            @Override
+            public void onNext(UserBean userBean) {
+                Toast.makeText(MainActivity.this, "登录成功", Toast.LENGTH_SHORT).show();
+            }
+        };
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.connectTimeout(5, TimeUnit.SECONDS);
+        mRetrofit = new Retrofit.Builder().client(builder.build()).
+                addConverterFactory(GsonConverterFactory.create()).
+                addCallAdapterFactory(RxJavaCallAdapterFactory.create()).
+                baseUrl("http://192.168.30.142:8080/LoginWeb/").
+                build();
+        mLoginService = mRetrofit.create(LoginService.class);
+        mLoginService.login(account, pwd).
+                subscribeOn(Schedulers.io()).
+                observeOn(AndroidSchedulers.mainThread()).
+                subscribe(subscriber);
+    }
+
     private void getMovie() {
         Subscriber<MovieBean> subscriber = new Subscriber<MovieBean>() {
 
@@ -118,8 +170,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(Throwable e) {
-                https:
-//api.douban.com/v2/movie/top250?start=0&count=10
                 Log.e(TAG, "error");
             }
 
