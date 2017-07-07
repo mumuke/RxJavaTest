@@ -1,9 +1,8 @@
 package image.cui.kejia.rxjavatest;
 
 import android.content.Context;
-import android.database.Observable;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Scroller;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,11 +22,11 @@ import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
+import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
-
-import static android.R.attr.onClick;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         mBtnData = (Button) findViewById(R.id.click_me_BN);
         mBtnLogin = (Button) findViewById(R.id.click_me_login);
         mListView = (ListView) findViewById(R.id.result_TV);
@@ -126,6 +127,37 @@ public class MainActivity extends AppCompatActivity {
 //        };
 //        observable.subscribe(observer1);
 //        observable.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe(observer1);
+
+        //倒计时
+        final int startTime = 10;
+        Observable.interval(0, 1, TimeUnit.SECONDS).//从0开始，每隔1秒发送一个
+                take(startTime + 1).//取出startTime+1个数
+                map(new Func1<Long, Long>() {
+
+            @Override
+            public Long call(Long time) {
+                //将1,2,3,···转换成10,9,8···
+                return startTime - time;
+            }
+        }).
+                toBlocking().
+                subscribe(new Subscriber<Long>() {
+                    @Override
+                    public void onCompleted() {
+                        Log.e("CKJ", "倒计时结束");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e("CKJ", "倒计时出现异常");
+
+                    }
+
+                    @Override
+                    public void onNext(Long aLong) {
+                        Log.e("CKJ", String.format("倒计时：%s s", aLong));
+                    }
+                });
     }
 
     //登录，自己搭建的一个服务器
